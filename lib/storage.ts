@@ -92,10 +92,11 @@ async function uploadToUploadthing(
   const secret = process.env.UPLOADTHING_SECRET;
   if (!secret) throw new Error("UPLOADTHING_SECRET not set");
 
-  // Uploadthing uses their SDK, but we can also use their REST API
   const formData = new FormData();
   const blob = file instanceof Buffer
-    ? new Blob([file], { type: options?.contentType || "application/octet-stream" })
+    ? new Blob([new Uint8Array(file.buffer, file.byteOffset, file.byteLength)], {
+        type: options?.contentType || "application/octet-stream",
+      })
     : file;
   formData.append("file", blob, filename);
 
@@ -136,15 +137,11 @@ async function uploadToR2(
   const key = options?.folder ? `${options.folder}/${filename}` : filename;
   const body = file instanceof Buffer ? file : Buffer.from(await file.arrayBuffer());
 
-  // Use S3-compatible PUT
   const url = `${endpoint}/${bucket}/${key}`;
   const resp = await fetch(url, {
     method: "PUT",
     headers: {
       "content-type": options?.contentType || "application/octet-stream",
-      // Note: real S3 auth requires AWS Signature V4.
-      // For a generated app, using the @aws-sdk/client-s3 is more reliable.
-      // This is a simplified version for the template.
     },
     body,
   });
