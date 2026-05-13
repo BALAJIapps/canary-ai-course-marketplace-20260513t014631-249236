@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ArrowRight, GraduationCap, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const displayFont = { fontFamily: '"DM Serif Display", Georgia, serif' };
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col bg-white">
@@ -30,14 +32,14 @@ export default function Home() {
         </nav>
       </header>
 
-      {/* Hero — left-aligned, display font on h1 */}
+      {/* Hero — left-aligned, serif display font on h1 */}
       <section className="grid md:grid-cols-[3fr_2fr] gap-12 px-8 py-20 max-w-6xl mx-auto w-full">
         <div className="flex flex-col justify-center">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f6f5f4] px-3 py-1 w-fit">
             <span className="h-1.5 w-1.5 rounded-full bg-green-500"></span>
             <span className="text-[13px] font-medium text-black/60">Live marketplace &middot; lessons available now</span>
           </div>
-          <h1 style={{fontFamily: 'var(--font-display), Georgia, serif'}} className="text-[54px] leading-[1.08] text-black/95 mb-6">
+          <h1 style={{...displayFont, fontSize: '54px', lineHeight: '1.08', letterSpacing: '-0.5px', color: 'rgba(0,0,0,0.95)', marginBottom: '24px'}}>
             Lessons taught by experts,<br />
             <em>understood</em> with AI
           </h1>
@@ -59,7 +61,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Distinctive visual: realistic AI summary preview card */}
+        {/* AI summary preview card */}
         <div className="flex items-center justify-center">
           <div className="w-full max-w-sm rounded-2xl border border-black/10 bg-white overflow-hidden" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px, rgba(0,0,0,0.027) 0px 2.025px 7.84px, rgba(0,0,0,0.02) 0px 0.8px 2.93px"}}>
             <div className="bg-[#f6f5f4] px-5 py-3 border-b border-black/8">
@@ -98,7 +100,9 @@ export default function Home() {
       {/* How it works */}
       <section className="bg-[#f6f5f4] px-8 py-16">
         <div className="max-w-6xl mx-auto">
-          <h2 style={{fontFamily: 'var(--font-display), Georgia, serif'}} className="text-[40px] leading-[1.0] text-black/95 mb-2">From lesson to learner</h2>
+          <h2 style={{...displayFont, fontSize: '40px', lineHeight: '1.08', color: 'rgba(0,0,0,0.95)', marginBottom: '8px'}}>
+            From lesson to learner
+          </h2>
           <p className="text-[16px] text-[#615d59] mb-10">Three steps. No gatekeeping. AI does the heavy lifting.</p>
           <div className="grid md:grid-cols-[2fr_1fr_1fr] gap-6">
             <div className="rounded-xl bg-white border border-black/10 p-6" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px"}}>
@@ -123,7 +127,9 @@ export default function Home() {
       {/* Comparison — unconventional section */}
       <section className="px-8 py-16 border-b border-black/8">
         <div className="max-w-6xl mx-auto">
-          <h2 style={{fontFamily: 'var(--font-display), Georgia, serif'}} className="text-[32px] leading-snug text-black/95 mb-8">Why LearnAI beats browsing YouTube tutorials</h2>
+          <h2 style={{...displayFont, fontSize: '32px', lineHeight: '1.15', color: 'rgba(0,0,0,0.95)', marginBottom: '32px'}}>
+            Why LearnAI beats browsing YouTube tutorials
+          </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="rounded-xl border border-black/10 p-6 bg-white">
               <div className="text-[13px] font-semibold text-[#a39e98] uppercase tracking-wider mb-4">YouTube / random tutorials</div>
