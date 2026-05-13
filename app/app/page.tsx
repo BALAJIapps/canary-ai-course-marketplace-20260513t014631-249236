@@ -50,6 +50,19 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+async function apiFetch(url: string, options?: RequestInit) {
+  const res = await fetch(url, options);
+  if (!res.ok) {
+    let errMsg = `HTTP ${res.status}`;
+    try {
+      const data = await res.json();
+      errMsg = data?.error?.message ?? errMsg;
+    } catch { /* ignore parse errors */ }
+    throw new Error(errMsg);
+  }
+  return res.json();
+}
+
 export default function DashboardPage() {
   const [allLessons, setAllLessons] = useState<Lesson[]>([]);
   const [mySubscriptions, setMySubscriptions] = useState<Subscription[]>([]);
@@ -57,6 +70,7 @@ export default function DashboardPage() {
   const [loadingSubs, setLoadingSubs] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState<string | null>(null);
   const [approvalLoading, setApprovalLoading] = useState<string | null>(null);
+  const [subscribedIds, setSubscribedIds] = useState<Set<string>>(new Set());
 
   // Create lesson form
   const [form, setForm] = useState({ title: '', description: '', content: '', subject: '', price: '0' });
@@ -70,14 +84,13 @@ export default function DashboardPage() {
   async function fetchAllLessons() {
     setLoadingLessons(true);
     try {
-      const res = await fetch('/api/canary-lessons?status=pending');
-      const data = await res.json();
-      // Also fetch approved to show metrics
-      const res2 = await fetch('/api/canary-lessons?status=approved');
-      const data2 = await res2.json();
-      setAllLessons([...(data.data ?? []), ...(data2.data ?? [])]);
-    } catch {
-      toast.error('Failed to load lessons');
+      const [pendingData, approvedData] = await Promise.all([
+        apiFetch('/api/canary-lessons?status=pending'),
+        apiFetch('/api/canary-lessons?status=approved'),
+      ]);
+      setAllLessons([...(pendingData.data ?? []), ...(approvedData.data ?? [])]);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load lessons');
     } finally {
       setLoadingLessons(false);
     }
@@ -86,11 +99,15 @@ export default function DashboardPage() {
   async function fetchSubscriptions() {
     setLoadingSubs(true);
     try {
-      const res = await fetch('/api/canary-subscriptions');
-      const data = await res.json();
-      setMySubscriptions(data.data ?? []);
-    } catch {
-      toast.error('Failed to load subscriptions');
+      const data = await apiFetch('/api/canary-subscriptions');
+      const subs: Subscription[] = data.data ?? [];
+      setMySubscriptions(subs);
+      setSubscribedIds(new Set(subs.map((s) => s.lessonId ?? '').filter(Boolean)));
+    } catch (err: unknown) {
+      // 401 is expected for unauthenticated users — silently ignore
+      if (!(err instanceof Error && err.message.includes('401'))) {
+        toast.error(err instanceof Error ? err.message : 'Failed to load subscriptions');
+      }
     } finally {
       setLoadingSubs(false);
     }
@@ -104,13 +121,11 @@ export default function DashboardPage() {
     }
     setCreating(true);
     try {
-      const res = await fetch('/api/canary-lessons', {
+      await apiFetch('/api/canary-lessons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error?.message ?? 'Failed');
       toast.success('Lesson submitted for review!');
       setForm({ title: '', description: '', content: '', subject: '', price: '0' });
       fetchAllLessons();
@@ -124,13 +139,11 @@ export default function DashboardPage() {
   async function handleAISummary(lessonId: string) {
     setSummaryLoading(lessonId);
     try {
-      const res = await fetch('/api/canary-ai-summary', {
+      await apiFetch('/api/canary-ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lessonId }),
       });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error?.message ?? 'Failed');
       toast.success('AI summary generated!');
       fetchAllLessons();
     } catch (err: unknown) {
@@ -143,31 +156,31 @@ export default function DashboardPage() {
   async function handleApproval(lessonId: string, action: 'approve' | 'reject') {
     setApprovalLoading(lessonId);
     try {
-      const res = await fetch(`/api/canary-lessons/${lessonId}/approve`, {
+      await apiFetch(`/api/canary-lessons/${lessonId}/approve`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
       });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error?.message ?? 'Failed');
       toast.success(`Lesson ${action}d!`);
       fetchAllLessons();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed');
+      toast.error(err instanceof Error ? err.message : 'Failed to update lesson');
     } finally {
       setApprovalLoading(null);
     }
   }
 
   async function handleSubscribe(lessonId: string) {
+    if (subscribedIds.has(lessonId)) {
+      toast('Already subscribed to this lesson');
+      return;
+    }
     try {
-      const res = await fetch('/api/canary-subscriptions', {
+      await apiFetch('/api/canary-subscriptions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lessonId }),
       });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error?.message ?? 'Failed');
       toast.success('Subscribed successfully!');
       fetchSubscriptions();
     } catch (err: unknown) {
@@ -194,7 +207,7 @@ export default function DashboardPage() {
             variant="ghost"
             size="sm"
             className="text-[14px] font-medium text-[#615d59]"
-            onClick={() => authClient.signOut().then(() => window.location.href = '/')}
+            onClick={() => authClient.signOut().then(() => { window.location.href = '/'; })}
           >
             <LogOut className="h-4 w-4 mr-1" />
             Sign out
@@ -306,8 +319,9 @@ export default function DashboardPage() {
                               size="sm"
                               className="bg-[#0075de] text-white hover:bg-[#005bab] text-[13px] rounded font-semibold"
                               onClick={() => handleSubscribe(lesson.id)}
+                              disabled={subscribedIds.has(lesson.id)}
                             >
-                              Subscribe
+                              {subscribedIds.has(lesson.id) ? 'Subscribed' : 'Subscribe'}
                             </Button>
                           </div>
                         </div>
@@ -465,7 +479,7 @@ export default function DashboardPage() {
                       <CardContent className="space-y-3">
                         <p className="text-[13px] text-[#615d59] leading-relaxed">{lesson.description}</p>
                         <div className="rounded-lg bg-[#f6f5f4] border border-black/8 p-3 max-h-32 overflow-y-auto">
-                          <p className="text-[12px] text-[#615d59] font-mono leading-relaxed whitespace-pre-wrap">{lesson.content?.slice(0, 500)}{lesson.content?.length > 500 ? '...' : ''}</p>
+                          <p className="text-[12px] text-[#615d59] font-mono leading-relaxed whitespace-pre-wrap">{lesson.content?.slice(0, 500)}{(lesson.content?.length ?? 0) > 500 ? '...' : ''}</p>
                         </div>
                         {!lesson.aiSummary && (
                           <Button

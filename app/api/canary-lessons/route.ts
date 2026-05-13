@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { canaryLesson, user } from "@/db/schema";
 import { getSession } from "@/lib/utils";
-import { desc, eq, ilike, or } from "drizzle-orm";
+import { desc, eq, ilike, or, and } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q") ?? "";
     const status = searchParams.get("status") ?? "approved";
+
+    // Always enforce status filter — never expose pending/rejected to public
+    const statusFilter = eq(canaryLesson.status, status);
 
     const lessons = await db
       .select({
@@ -27,12 +30,15 @@ export async function GET(req: NextRequest) {
       .leftJoin(user, eq(canaryLesson.teacherId, user.id))
       .where(
         q
-          ? or(
-              ilike(canaryLesson.title, `%${q}%`),
-              ilike(canaryLesson.description, `%${q}%`),
-              ilike(canaryLesson.subject, `%${q}%`)
+          ? and(
+              statusFilter,
+              or(
+                ilike(canaryLesson.title, `%${q}%`),
+                ilike(canaryLesson.description, `%${q}%`),
+                ilike(canaryLesson.subject, `%${q}%`)
+              )
             )
-          : eq(canaryLesson.status, status)
+          : statusFilter
       )
       .orderBy(desc(canaryLesson.createdAt))
       .limit(50);
@@ -58,6 +64,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: { code: "VALIDATION", message: "title, description, and content are required" } }, { status: 400 });
     }
 
+    // Validate price
+    const priceNum = parseFloat(price ?? "0");
+    if (isNaN(priceNum) || priceNum < 0) {
+      return NextResponse.json({ ok: false, error: { code: "VALIDATION", message: "price must be a non-negative number" } }, { status: 400 });
+    }
+
     const [lesson] = await db
       .insert(canaryLesson)
       .values({
@@ -66,10 +78,14 @@ export async function POST(req: NextRequest) {
         description: String(description).slice(0, 1000),
         content: String(content).slice(0, 10000),
         subject: String(subject || "General").slice(0, 100),
-        price: String(parseFloat(price ?? "0").toFixed(2)),
+        price: priceNum.toFixed(2),
         status: "pending",
       })
       .returning();
+
+    if (!lesson) {
+      return NextResponse.json({ ok: false, error: { code: "SERVER_ERROR", message: "Insert failed" } }, { status: 500 });
+    }
 
     return NextResponse.json({ ok: true, data: lesson }, { status: 201 });
   } catch (err) {

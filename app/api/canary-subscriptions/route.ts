@@ -59,6 +59,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: { code: "NOT_FOUND", message: "Lesson not found" } }, { status: 404 });
     }
 
+    // Only allow subscribing to approved lessons
+    if (lesson.status !== "approved") {
+      return NextResponse.json({ ok: false, error: { code: "FORBIDDEN", message: "Lesson is not available for subscription" } }, { status: 403 });
+    }
+
     // Check for existing subscription
     const [existing] = await db
       .select()
@@ -83,6 +88,10 @@ export async function POST(req: NextRequest) {
         status: "active",
       })
       .returning();
+
+    if (!sub) {
+      return NextResponse.json({ ok: false, error: { code: "SERVER_ERROR", message: "Insert failed" } }, { status: 500 });
+    }
 
     return NextResponse.json({ ok: true, data: sub }, { status: 201 });
   } catch (err) {
