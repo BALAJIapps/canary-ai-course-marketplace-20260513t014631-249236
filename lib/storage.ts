@@ -18,12 +18,13 @@ export interface UploadResult {
   name: string;
 }
 
-/** Convert Buffer to a strict ArrayBuffer that satisfies Node 26 Blob types */
-function bufferToArrayBuffer(buf: Buffer): ArrayBuffer {
+/** Convert Buffer to a strict ArrayBuffer for Blob compatibility */
+function bufferToBlob(buf: Buffer, contentType = "application/octet-stream"): Blob {
+  // Copy bytes into a fresh ArrayBuffer to satisfy strict lib.dom types
   const ab = new ArrayBuffer(buf.length);
   const view = new Uint8Array(ab);
-  for (let i = 0; i < buf.length; i++) view[i] = buf[i];
-  return ab;
+  buf.copy(view);
+  return new Blob([ab], { type: contentType });
 }
 
 export async function uploadFile(
@@ -67,13 +68,9 @@ async function uploadToUploadthing(
   if (!secret) throw new Error("UPLOADTHING_SECRET not set");
 
   const formData = new FormData();
-  let blob: Blob;
-  if (file instanceof Buffer) {
-    const ab = bufferToArrayBuffer(file);
-    blob = new Blob([ab], { type: options?.contentType || "application/octet-stream" });
-  } else {
-    blob = file;
-  }
+  const blob: Blob = file instanceof Buffer
+    ? bufferToBlob(file, options?.contentType)
+    : file;
   formData.append("file", blob, filename);
 
   const resp = await fetch("https://uploadthing.com/api/uploadFiles", {
@@ -111,8 +108,7 @@ async function uploadToR2(
   const key = options?.folder ? `${options.folder}/${filename}` : filename;
   const body = file instanceof Buffer ? file : Buffer.from(await file.arrayBuffer());
 
-  const url = `${endpoint}/${bucket}/${key}`;
-  const resp = await fetch(url, {
+  const resp = await fetch(`${endpoint}/${bucket}/${key}`, {
     method: "PUT",
     headers: { "content-type": options?.contentType || "application/octet-stream" },
     body,
@@ -185,8 +181,8 @@ async function uploadToLocal(
   const dir = path.join(process.cwd(), "public", "uploads", options?.folder || "");
   await fs.mkdir(dir, { recursive: true });
 
-  const filepath = path.join(dir, filename);
   const body = file instanceof Buffer ? file : Buffer.from(await file.arrayBuffer());
+  const filepath = path.join(dir, filename);
   await fs.writeFile(filepath, body);
 
   const key = options?.folder ? `${options.folder}/${filename}` : filename;
