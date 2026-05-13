@@ -1,48 +1,47 @@
 import Link from "next/link";
-import { BookOpen, Users, ShieldCheck, Sparkles, ArrowRight, GraduationCap } from "lucide-react";
+import { BookOpen, Users, ShieldCheck, ArrowRight, GraduationCap, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col bg-white">
-      {/* Nav */}
+      {/* Nav — minimal accent use */}
       <header className="flex items-center justify-between border-b border-black/10 px-8 py-4">
         <Link href="/" className="flex items-center gap-2">
           <GraduationCap className="h-5 w-5 text-[#0075de]" />
           <span className="text-[15px] font-semibold tracking-tight text-black/90">LearnAI</span>
         </Link>
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-3">
           <Link href="/marketplace">
             <Button variant="ghost" size="sm" className="text-[15px] font-medium text-black/70">
               Browse lessons
             </Button>
           </Link>
           <Link href="/sign-in">
-            <Button variant="ghost" size="sm" className="text-[15px] font-medium">
+            <Button variant="ghost" size="sm" className="text-[15px] font-medium text-black/70">
               Sign in
             </Button>
           </Link>
           <Link href="/sign-up">
-            <Button size="sm" className="bg-[#0075de] text-white hover:bg-[#005bab] text-[15px] font-semibold rounded">
+            <Button size="sm" className="bg-[#0075de] text-white hover:bg-[#005bab] text-[15px] font-semibold rounded px-4">
               Start learning
             </Button>
           </Link>
         </nav>
       </header>
 
-      {/* Hero — left-aligned with visual anchor */}
+      {/* Hero — left-aligned, no gradient, accent used once on CTA only */}
       <section className="grid md:grid-cols-[3fr_2fr] gap-12 px-8 py-20 max-w-6xl mx-auto w-full">
         <div className="flex flex-col justify-center">
-          <Badge className="mb-6 w-fit rounded-full bg-[#f2f9ff] text-[#097fe8] text-xs font-semibold px-3 py-1 border-0">
-            AI-powered learning
-          </Badge>
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f6f5f4] px-3 py-1 w-fit">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+            <span className="text-[13px] font-medium text-black/60">Live marketplace · 2 lessons available</span>
+          </div>
           <h1 className="text-[54px] font-bold leading-[1.04] tracking-[-1.875px] text-black/95 mb-6">
-            Lessons taught by experts,
-            <br />understood with AI
+            Lessons taught by experts,<br />understood with AI
           </h1>
           <p className="text-[18px] font-normal leading-[1.5] text-[#615d59] mb-10 max-w-lg">
-            LearnAI connects students with teacher-created lessons. Every lesson gets an AI-generated summary so you know exactly what you&apos;re signing up for.
+            LearnAI connects students with teacher-created lessons. Every lesson gets an AI-generated summary so you know exactly what you&apos;re signing up for before you commit.
           </p>
           <div className="flex gap-3">
             <Link href="/marketplace">
@@ -52,84 +51,126 @@ export default function Home() {
               </Button>
             </Link>
             <Link href="/sign-up">
-              <Button size="lg" variant="outline" className="font-semibold rounded px-6 border-black/20">
+              <Button size="lg" variant="outline" className="font-semibold rounded px-6 border-black/20 text-black/80">
                 Teach a lesson
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* Visual anchor — role cards */}
-        <div className="flex flex-col gap-4 justify-center">
-          <div className="rounded-xl border border-black/10 bg-[#f6f5f4] p-5" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px, rgba(0,0,0,0.027) 0px 2.025px 7.84px"}}>
-            <div className="flex items-center gap-3 mb-2">
-              <BookOpen className="h-4 w-4 text-[#0075de]" />
-              <span className="text-[14px] font-semibold text-black/90">For Teachers</span>
+        {/* Distinctive visual: AI summary preview card */}
+        <div className="flex items-center justify-center">
+          <div className="w-full max-w-sm rounded-2xl border border-black/10 bg-white overflow-hidden" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px, rgba(0,0,0,0.027) 0px 2.025px 7.84px, rgba(0,0,0,0.02) 0px 0.8px 2.93px"}}>
+            <div className="bg-[#f6f5f4] px-5 py-4 border-b border-black/8">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="h-2 w-2 rounded-full bg-red-400"></div>
+                <div className="h-2 w-2 rounded-full bg-amber-400"></div>
+                <div className="h-2 w-2 rounded-full bg-green-400"></div>
+              </div>
             </div>
-            <p className="text-[14px] text-[#615d59]">Upload lessons, set your price, reach students worldwide. AI summarizes your content automatically.</p>
-          </div>
-          <div className="rounded-xl border border-black/10 bg-white p-5" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px, rgba(0,0,0,0.027) 0px 2.025px 7.84px"}}>
-            <div className="flex items-center gap-3 mb-2">
-              <Users className="h-4 w-4 text-[#0075de]" />
-              <span className="text-[14px] font-semibold text-black/90">For Students</span>
+            <div className="p-5 space-y-4">
+              <div>
+                <div className="text-[11px] font-semibold text-[#a39e98] uppercase tracking-wider mb-1">Lesson</div>
+                <div className="text-[16px] font-bold text-black/90 leading-tight">Introduction to Python Lists</div>
+                <div className="text-[13px] text-[#a39e98] mt-1">by Test Student &middot; Python &middot; Free</div>
+              </div>
+              <div className="rounded-lg bg-[#f2f9ff] border border-[#c3e4fb] p-3">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <svg className="h-3 w-3 text-[#0075de]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  <span className="text-[10px] font-semibold text-[#0075de] uppercase tracking-wider">AI Summary</span>
+                </div>
+                <p className="text-[12px] text-[#615d59] leading-relaxed">This lesson covers Python list fundamentals — creation, indexing, slicing, and the most-used methods. Perfect for beginners moving from variables to collections.</p>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-black/8">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                  <span className="text-[12px] font-medium text-green-700">Admin approved</span>
+                </div>
+                <span className="text-[12px] font-bold text-black/60 bg-[#f6f5f4] rounded-full px-2.5 py-0.5">Free</span>
+              </div>
             </div>
-            <p className="text-[14px] text-[#615d59]">Browse AI-summarized lessons, subscribe to what matters, learn at your own pace.</p>
-          </div>
-          <div className="rounded-xl border border-black/10 bg-[#f6f5f4] p-5" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px, rgba(0,0,0,0.027) 0px 2.025px 7.84px"}}>
-            <div className="flex items-center gap-3 mb-2">
-              <ShieldCheck className="h-4 w-4 text-[#0075de]" />
-              <span className="text-[14px] font-semibold text-black/90">Quality assured</span>
-            </div>
-            <p className="text-[14px] text-[#615d59]">Every lesson reviewed by our admin team before going live. No low-effort content.</p>
           </div>
         </div>
       </section>
 
-      {/* How it works — unconventional: process timeline */}
+      {/* How it works — warm alt background, numbered timeline */}
       <section className="bg-[#f6f5f4] px-8 py-16">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-[40px] font-bold leading-[1.5] text-black/95 mb-2">From lesson to learner in three steps</h2>
-          <p className="text-[16px] text-[#615d59] mb-10">Our pipeline makes quality teaching accessible at scale.</p>
+          <h2 className="text-[40px] font-bold leading-[1.0] tracking-[-1.5px] text-black/95 mb-2">From lesson to learner</h2>
+          <p className="text-[16px] text-[#615d59] mb-10">Three steps. No gatekeeping. AI does the heavy lifting.</p>
           <div className="grid md:grid-cols-[2fr_1fr_1fr] gap-6">
             <div className="rounded-xl bg-white border border-black/10 p-6" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px"}}>
-              <div className="text-[40px] font-bold text-[#0075de] leading-none mb-4">01</div>
+              <div className="text-[40px] font-bold text-black/20 leading-none mb-4 font-mono">01</div>
               <h3 className="text-[18px] font-bold text-black/90 mb-2">Teacher uploads</h3>
-              <p className="text-[14px] text-[#615d59] leading-relaxed">Teachers write their lesson — title, subject, full content — and submit for review. LearnAI instantly generates an AI summary.</p>
+              <p className="text-[14px] text-[#615d59] leading-relaxed">Write your lesson — title, subject, full content — and submit for review. LearnAI instantly generates an AI summary.</p>
             </div>
             <div className="rounded-xl bg-white border border-black/10 p-6" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px"}}>
-              <div className="text-[40px] font-bold text-[#0075de] leading-none mb-4">02</div>
+              <div className="text-[40px] font-bold text-black/20 leading-none mb-4 font-mono">02</div>
               <h3 className="text-[18px] font-bold text-black/90 mb-2">Admin approves</h3>
-              <p className="text-[14px] text-[#615d59] leading-relaxed">Our review queue surfaces lessons needing attention. Approve or reject with a note — status updates instantly.</p>
+              <p className="text-[14px] text-[#615d59] leading-relaxed">Review queue surfaces lessons needing attention. Approve or reject — status updates instantly.</p>
             </div>
             <div className="rounded-xl bg-white border border-black/10 p-6" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px"}}>
-              <div className="text-[40px] font-bold text-[#0075de] leading-none mb-4">03</div>
+              <div className="text-[40px] font-bold text-black/20 leading-none mb-4 font-mono">03</div>
               <h3 className="text-[18px] font-bold text-black/90 mb-2">Student subscribes</h3>
-              <p className="text-[14px] text-[#615d59] leading-relaxed">Students browse the marketplace, read AI summaries to decide fast, and subscribe in one click.</p>
+              <p className="text-[14px] text-[#615d59] leading-relaxed">Browse the marketplace, read AI summaries, subscribe in one click.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Comparison section — unconventional: vs. status quo */}
+      <section className="px-8 py-16 border-b border-black/8">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-[32px] font-bold tracking-[-1.0px] text-black/95 mb-8">Why LearnAI beats browsing YouTube tutorials</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="rounded-xl border border-black/10 p-6 bg-white">
+              <div className="text-[13px] font-semibold text-[#a39e98] uppercase tracking-wider mb-4">YouTube / random tutorials</div>
+              <ul className="space-y-3">
+                {["No quality filter — anyone can post anything", "15-minute intros before any content", "Can&apos;t preview what you&apos;ll learn", "Teacher credibility unknown"].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-[14px] text-[#615d59]">
+                    <span className="mt-0.5 h-4 w-4 rounded-full border border-black/20 flex-shrink-0 flex items-center justify-center">
+                      <span className="h-1.5 w-1.5 rounded-full bg-black/20"></span>
+                    </span>
+                    <span dangerouslySetInnerHTML={{__html: item}} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-xl border border-[#0075de]/20 p-6 bg-[#f2f9ff]">
+              <div className="text-[13px] font-semibold text-[#0075de] uppercase tracking-wider mb-4">LearnAI marketplace</div>
+              <ul className="space-y-3">
+                {["Admin-reviewed before going live", "AI summary tells you exactly what you&apos;ll learn", "Read the full summary before subscribing", "Verified teacher profiles"].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-[14px] text-black/70">
+                    <CheckCircle className="mt-0.5 h-4 w-4 text-green-500 flex-shrink-0" />
+                    <span dangerouslySetInnerHTML={{__html: item}} />
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
       </section>
 
       {/* Subjects strip */}
-      <section className="px-8 py-12 border-b border-black/10">
+      <section className="px-8 py-12">
         <div className="max-w-6xl mx-auto">
-          <p className="text-[14px] font-semibold text-[#a39e98] uppercase tracking-widest mb-6">Popular subjects</p>
-          <div className="flex flex-wrap gap-3">
+          <p className="text-[13px] font-semibold text-[#a39e98] uppercase tracking-widest mb-5">Popular subjects</p>
+          <div className="flex flex-wrap gap-2">
             {["Mathematics","Python","Data Science","Web Development","Design","Business","Biology","History"].map(s => (
               <Link key={s} href={`/marketplace?q=${encodeURIComponent(s)}`}>
-                <span className="inline-block rounded-full border border-black/10 bg-[#f6f5f4] px-4 py-2 text-[14px] font-medium text-black/80 hover:bg-white hover:border-[#0075de] hover:text-[#0075de] transition-colors cursor-pointer">{s}</span>
+                <span className="inline-block rounded-full border border-black/10 bg-[#f6f5f4] px-4 py-1.5 text-[13px] font-medium text-black/70 hover:bg-white hover:border-black/20 transition-colors cursor-pointer">{s}</span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <footer className="px-8 py-6 flex items-center justify-between text-[13px] text-[#a39e98]">
+      <footer className="border-t border-black/8 px-8 py-5 flex items-center justify-between text-[13px] text-[#a39e98]">
         <span>LearnAI &mdash; AI-powered course marketplace</span>
         <div className="flex gap-4">
-          <Link href="/marketplace" className="hover:text-black/70 transition-colors">Marketplace</Link>
-          <Link href="/sign-up" className="hover:text-black/70 transition-colors">Teach</Link>
-          <Link href="/app" className="hover:text-black/70 transition-colors">Dashboard</Link>
+          <Link href="/marketplace" className="hover:text-black/60 transition-colors">Marketplace</Link>
+          <Link href="/sign-up" className="hover:text-black/60 transition-colors">Teach</Link>
+          <Link href="/app" className="hover:text-black/60 transition-colors">Dashboard</Link>
         </div>
       </footer>
     </main>
