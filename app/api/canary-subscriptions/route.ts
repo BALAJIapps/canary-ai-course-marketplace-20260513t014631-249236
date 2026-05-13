@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { canarySubscription, canaryLesson } from "@/db/schema";
-import { getSession } from "@/lib/utils";
+import { getSession } from "@/lib/session";
 import { eq, and, desc } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session?.user) {
-      return NextResponse.json({ ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } }, { status: 401 });
+      return NextResponse.json(
+        { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } },
+        { status: 401 }
+      );
     }
 
     const subs = await db
@@ -30,7 +33,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: true, data: subs });
   } catch (err) {
     console.error("[canary-subscriptions GET]", err);
-    return NextResponse.json({ ok: false, error: { code: "SERVER_ERROR", message: "Failed to fetch subscriptions" } }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: { code: "SERVER_ERROR", message: "Failed to fetch subscriptions" } },
+      { status: 500 }
+    );
   }
 }
 
@@ -38,14 +44,20 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session?.user) {
-      return NextResponse.json({ ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } }, { status: 401 });
+      return NextResponse.json(
+        { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } },
+        { status: 401 }
+      );
     }
 
     const body = await req.json();
     const { lessonId } = body;
 
     if (!lessonId) {
-      return NextResponse.json({ ok: false, error: { code: "VALIDATION", message: "lessonId is required" } }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: { code: "VALIDATION", message: "lessonId is required" } },
+        { status: 400 }
+      );
     }
 
     // Verify lesson exists and is approved
@@ -56,12 +68,17 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (!lesson) {
-      return NextResponse.json({ ok: false, error: { code: "NOT_FOUND", message: "Lesson not found" } }, { status: 404 });
+      return NextResponse.json(
+        { ok: false, error: { code: "NOT_FOUND", message: "Lesson not found" } },
+        { status: 404 }
+      );
     }
 
-    // Only allow subscribing to approved lessons
     if (lesson.status !== "approved") {
-      return NextResponse.json({ ok: false, error: { code: "FORBIDDEN", message: "Lesson is not available for subscription" } }, { status: 403 });
+      return NextResponse.json(
+        { ok: false, error: { code: "FORBIDDEN", message: "Lesson is not available for subscription" } },
+        { status: 403 }
+      );
     }
 
     // Check for existing subscription
@@ -90,12 +107,18 @@ export async function POST(req: NextRequest) {
       .returning();
 
     if (!sub) {
-      return NextResponse.json({ ok: false, error: { code: "SERVER_ERROR", message: "Insert failed" } }, { status: 500 });
+      return NextResponse.json(
+        { ok: false, error: { code: "SERVER_ERROR", message: "Insert failed" } },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ ok: true, data: sub }, { status: 201 });
   } catch (err) {
     console.error("[canary-subscriptions POST]", err);
-    return NextResponse.json({ ok: false, error: { code: "SERVER_ERROR", message: "Failed to create subscription" } }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: { code: "SERVER_ERROR", message: "Failed to create subscription" } },
+      { status: 500 }
+    );
   }
 }

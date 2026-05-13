@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { canaryLesson, user } from "@/db/schema";
-import { getSession } from "@/lib/utils";
+import { getSession } from "@/lib/session";
 import { desc, eq, ilike, or, and } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const q = searchParams.get("q") ?? "";
     const status = searchParams.get("status") ?? "approved";
 
-    // Always enforce status filter — never expose pending/rejected to public
+    // Always enforce status filter — never expose wrong-status lessons
     const statusFilter = eq(canaryLesson.status, status);
 
     const lessons = await db
@@ -46,7 +46,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: true, data: lessons });
   } catch (err) {
     console.error("[canary-lessons GET]", err);
-    return NextResponse.json({ ok: false, error: { code: "SERVER_ERROR", message: "Failed to fetch lessons" } }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: { code: "SERVER_ERROR", message: "Failed to fetch lessons" } },
+      { status: 500 }
+    );
   }
 }
 
@@ -54,20 +57,28 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session?.user) {
-      return NextResponse.json({ ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } }, { status: 401 });
+      return NextResponse.json(
+        { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } },
+        { status: 401 }
+      );
     }
 
     const body = await req.json();
     const { title, description, content, subject, price } = body;
 
     if (!title || !description || !content) {
-      return NextResponse.json({ ok: false, error: { code: "VALIDATION", message: "title, description, and content are required" } }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: { code: "VALIDATION", message: "title, description, and content are required" } },
+        { status: 400 }
+      );
     }
 
-    // Validate price
     const priceNum = parseFloat(price ?? "0");
     if (isNaN(priceNum) || priceNum < 0) {
-      return NextResponse.json({ ok: false, error: { code: "VALIDATION", message: "price must be a non-negative number" } }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: { code: "VALIDATION", message: "price must be a non-negative number" } },
+        { status: 400 }
+      );
     }
 
     const [lesson] = await db
@@ -84,12 +95,18 @@ export async function POST(req: NextRequest) {
       .returning();
 
     if (!lesson) {
-      return NextResponse.json({ ok: false, error: { code: "SERVER_ERROR", message: "Insert failed" } }, { status: 500 });
+      return NextResponse.json(
+        { ok: false, error: { code: "SERVER_ERROR", message: "Insert failed" } },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ ok: true, data: lesson }, { status: 201 });
   } catch (err) {
     console.error("[canary-lessons POST]", err);
-    return NextResponse.json({ ok: false, error: { code: "SERVER_ERROR", message: "Failed to create lesson" } }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: { code: "SERVER_ERROR", message: "Failed to create lesson" } },
+      { status: 500 }
+    );
   }
 }

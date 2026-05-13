@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { canaryLesson } from "@/db/schema";
-import { getSession } from "@/lib/utils";
-import { anthropic } from "@/lib/ai";
+import { getSession } from "@/lib/session";
+import { openai, DEFAULT_MODEL } from "@/lib/ai";
 import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session?.user) {
-      return NextResponse.json({ ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } }, { status: 401 });
+      return NextResponse.json(
+        { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } },
+        { status: 401 }
+      );
     }
 
     const body = await req.json();
     const { lessonId } = body;
 
     if (!lessonId) {
-      return NextResponse.json({ ok: false, error: { code: "VALIDATION", message: "lessonId is required" } }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: { code: "VALIDATION", message: "lessonId is required" } },
+        { status: 400 }
+      );
     }
 
     const [lesson] = await db
@@ -26,12 +32,15 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (!lesson) {
-      return NextResponse.json({ ok: false, error: { code: "NOT_FOUND", message: "Lesson not found" } }, { status: 404 });
+      return NextResponse.json(
+        { ok: false, error: { code: "NOT_FOUND", message: "Lesson not found" } },
+        { status: 404 }
+      );
     }
 
     // Generate AI summary using Promise.race for proper timeout
-    const summaryPromise = anthropic.messages.create({
-      model: "claude-haiku-4-5",
+    const summaryPromise = openai.chat.completions.create({
+      model: DEFAULT_MODEL,
       max_tokens: 512,
       messages: [
         {
@@ -42,11 +51,12 @@ export async function POST(req: NextRequest) {
     });
 
     const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("AI summary timed out")), 25000)
+      setTimeout(() => reject(new Error("AI summary timed out after 25s")), 25000)
     );
 
-    const message = await Promise.race([summaryPromise, timeoutPromise]);
-    const summary = message.content[0].type === "text" ? message.content[0].text : "Summary not available.";
+    const response = await Promise.race([summaryPromise, timeoutPromise]);
+    const summary =
+      response.choices[0]?.message?.content ?? "Summary not available.";
 
     // Persist summary
     const [updated] = await db
@@ -56,13 +66,19 @@ export async function POST(req: NextRequest) {
       .returning();
 
     if (!updated) {
-      return NextResponse.json({ ok: false, error: { code: "SERVER_ERROR", message: "Failed to persist summary" } }, { status: 500 });
+      return NextResponse.json(
+        { ok: false, error: { code: "SERVER_ERROR", message: "Failed to persist summary" } },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ ok: true, data: { lessonId, summary, lesson: updated } });
   } catch (err) {
     console.error("[canary-ai-summary POST]", err);
     const message = err instanceof Error ? err.message : "Failed to generate summary";
-    return NextResponse.json({ ok: false, error: { code: "SERVER_ERROR", message } }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: { code: "SERVER_ERROR", message } },
+      { status: 500 }
+    );
   }
 }
