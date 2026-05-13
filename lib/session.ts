@@ -7,9 +7,12 @@ import { auth } from "@/lib/auth";
 /**
  * Server-side session helpers. Only import from Server Components and server
  * actions — `next/headers` blows up in Client Components.
+ *
+ * Supports both cookie-based sessions (browser) and Bearer token auth (API clients).
  */
 export async function getSession() {
-  return auth.api.getSession({ headers: await headers() });
+  const hdrs = await headers();
+  return auth.api.getSession({ headers: hdrs });
 }
 
 export async function requireSession() {
