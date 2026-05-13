@@ -17,6 +17,7 @@ interface Lesson {
   id: string;
   title: string;
   description: string;
+  content: string;
   subject: string;
   price: string;
   status: string;
@@ -104,7 +105,6 @@ export default function DashboardPage() {
       setMySubscriptions(subs);
       setSubscribedIds(new Set(subs.map((s) => s.lessonId).filter((id): id is string => id !== null)));
     } catch (err: unknown) {
-      // 401 is expected for unauthenticated users — silently ignore
       if (!(err instanceof Error && err.message.startsWith('HTTP 401'))) {
         toast.error(err instanceof Error ? err.message : 'Failed to load subscriptions');
       }
@@ -289,7 +289,7 @@ export default function DashboardPage() {
                       </CardHeader>
                       <CardContent className="space-y-3">
                         {lesson.aiSummary ? (
-                          <div className="rounded-lg bg-[#f6f5f4] border border-black/8 p-3">
+                          <div className="rounded-lg bg-[#f6f5f4] border border-black/10 p-3">
                             <div className="flex items-center gap-1.5 mb-1">
                               <Sparkles className="h-3 w-3 text-[#0075de]" />
                               <span className="text-[11px] font-semibold text-[#0075de] uppercase tracking-wider">AI Summary</span>
@@ -308,7 +308,7 @@ export default function DashboardPage() {
                             {summaryLoading === lesson.id ? 'Generating...' : 'Generate AI summary'}
                           </Button>
                         )}
-                        <div className="flex items-center justify-between pt-1 border-t border-black/8">
+                        <div className="flex items-center justify-between pt-1 border-t border-black/10">
                           <span className="text-[13px] text-[#a39e98]">by {lesson.teacherName ?? 'Anonymous'}</span>
                           <div className="flex items-center gap-2">
                             <span className="text-[14px] font-bold text-black/90">
@@ -433,7 +433,9 @@ export default function DashboardPage() {
                       <CardContent className="py-4 flex items-center justify-between">
                         <div>
                           <div className="text-[15px] font-semibold text-black/90">{sub.lessonTitle ?? 'Untitled'}</div>
-                          <div className="text-[13px] text-[#615d59]">{sub.lessonSubject} &mdash; {sub.lessonPrice && parseFloat(sub.lessonPrice) > 0 ? `$${parseFloat(sub.lessonPrice).toFixed(2)}` : 'Free'}</div>
+                          <div className="text-[13px] text-[#615d59]">
+                            {sub.lessonSubject} &mdash; {sub.lessonPrice && parseFloat(sub.lessonPrice) > 0 ? `$${parseFloat(sub.lessonPrice).toFixed(2)}` : 'Free'}
+                          </div>
                         </div>
                         <StatusBadge status={sub.status} />
                       </CardContent>
@@ -470,15 +472,19 @@ export default function DashboardPage() {
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <CardTitle className="text-[16px] font-bold text-black/90">{lesson.title}</CardTitle>
-                            <p className="text-[13px] text-[#615d59] mt-0.5">by {lesson.teacherName ?? lesson.teacherEmail ?? 'Unknown'} &bull; {lesson.subject}</p>
+                            <p className="text-[13px] text-[#615d59] mt-0.5">
+                              by {lesson.teacherName ?? lesson.teacherEmail ?? 'Unknown'} &bull; {lesson.subject}
+                            </p>
                           </div>
                           <StatusBadge status={lesson.status} />
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <p className="text-[13px] text-[#615d59] leading-relaxed">{lesson.description}</p>
-                        <div className="rounded-lg bg-[#f6f5f4] border border-black/8 p-3 max-h-32 overflow-y-auto">
-                          <p className="text-[12px] text-[#615d59] font-mono leading-relaxed whitespace-pre-wrap">{lesson.content?.slice(0, 500)}{(lesson.content?.length ?? 0) > 500 ? '...' : ''}</p>
+                        <div className="rounded-lg bg-[#f6f5f4] border border-black/10 p-3 max-h-32 overflow-y-auto">
+                          <p className="text-[12px] text-[#615d59] font-mono leading-relaxed whitespace-pre-wrap">
+                            {lesson.content.slice(0, 500)}{lesson.content.length > 500 ? '...' : ''}
+                          </p>
                         </div>
                         {!lesson.aiSummary && (
                           <Button
