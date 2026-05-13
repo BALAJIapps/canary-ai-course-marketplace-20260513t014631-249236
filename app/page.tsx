@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { BookOpen, Users, ShieldCheck, ArrowRight, GraduationCap, CheckCircle } from "lucide-react";
+import { ArrowRight, GraduationCap, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col bg-white">
-      {/* Nav — minimal accent use */}
+      {/* Nav */}
       <header className="flex items-center justify-between border-b border-black/10 px-8 py-4">
         <Link href="/" className="flex items-center gap-2">
           <GraduationCap className="h-5 w-5 text-[#0075de]" />
@@ -30,15 +30,16 @@ export default function Home() {
         </nav>
       </header>
 
-      {/* Hero — left-aligned, no gradient, accent used once on CTA only */}
+      {/* Hero — left-aligned, display font on h1 */}
       <section className="grid md:grid-cols-[3fr_2fr] gap-12 px-8 py-20 max-w-6xl mx-auto w-full">
         <div className="flex flex-col justify-center">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f6f5f4] px-3 py-1 w-fit">
             <span className="h-1.5 w-1.5 rounded-full bg-green-500"></span>
-            <span className="text-[13px] font-medium text-black/60">Live marketplace · 2 lessons available</span>
+            <span className="text-[13px] font-medium text-black/60">Live marketplace &middot; lessons available now</span>
           </div>
-          <h1 className="text-[54px] font-bold leading-[1.04] tracking-[-1.875px] text-black/95 mb-6">
-            Lessons taught by experts,<br />understood with AI
+          <h1 style={{fontFamily: 'var(--font-display), Georgia, serif'}} className="text-[54px] leading-[1.08] text-black/95 mb-6">
+            Lessons taught by experts,<br />
+            <em>understood</em> with AI
           </h1>
           <p className="text-[18px] font-normal leading-[1.5] text-[#615d59] mb-10 max-w-lg">
             LearnAI connects students with teacher-created lessons. Every lesson gets an AI-generated summary so you know exactly what you&apos;re signing up for before you commit.
@@ -58,14 +59,15 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Distinctive visual: AI summary preview card */}
+        {/* Distinctive visual: realistic AI summary preview card */}
         <div className="flex items-center justify-center">
           <div className="w-full max-w-sm rounded-2xl border border-black/10 bg-white overflow-hidden" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px, rgba(0,0,0,0.027) 0px 2.025px 7.84px, rgba(0,0,0,0.02) 0px 0.8px 2.93px"}}>
-            <div className="bg-[#f6f5f4] px-5 py-4 border-b border-black/8">
-              <div className="flex items-center gap-2 mb-1">
+            <div className="bg-[#f6f5f4] px-5 py-3 border-b border-black/8">
+              <div className="flex items-center gap-1.5">
                 <div className="h-2 w-2 rounded-full bg-red-400"></div>
                 <div className="h-2 w-2 rounded-full bg-amber-400"></div>
                 <div className="h-2 w-2 rounded-full bg-green-400"></div>
+                <span className="ml-2 text-[11px] text-[#a39e98] font-medium">learnai.app/marketplace</span>
               </div>
             </div>
             <div className="p-5 space-y-4">
@@ -93,45 +95,43 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How it works — warm alt background, numbered timeline */}
+      {/* How it works */}
       <section className="bg-[#f6f5f4] px-8 py-16">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-[40px] font-bold leading-[1.0] tracking-[-1.5px] text-black/95 mb-2">From lesson to learner</h2>
+          <h2 style={{fontFamily: 'var(--font-display), Georgia, serif'}} className="text-[40px] leading-[1.0] text-black/95 mb-2">From lesson to learner</h2>
           <p className="text-[16px] text-[#615d59] mb-10">Three steps. No gatekeeping. AI does the heavy lifting.</p>
           <div className="grid md:grid-cols-[2fr_1fr_1fr] gap-6">
             <div className="rounded-xl bg-white border border-black/10 p-6" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px"}}>
               <div className="text-[40px] font-bold text-black/20 leading-none mb-4 font-mono">01</div>
               <h3 className="text-[18px] font-bold text-black/90 mb-2">Teacher uploads</h3>
-              <p className="text-[14px] text-[#615d59] leading-relaxed">Write your lesson — title, subject, full content — and submit for review. LearnAI instantly generates an AI summary.</p>
+              <p className="text-[14px] text-[#615d59] leading-relaxed">Write your lesson and submit for review. AI generates a summary instantly.</p>
             </div>
             <div className="rounded-xl bg-white border border-black/10 p-6" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px"}}>
               <div className="text-[40px] font-bold text-black/20 leading-none mb-4 font-mono">02</div>
               <h3 className="text-[18px] font-bold text-black/90 mb-2">Admin approves</h3>
-              <p className="text-[14px] text-[#615d59] leading-relaxed">Review queue surfaces lessons needing attention. Approve or reject — status updates instantly.</p>
+              <p className="text-[14px] text-[#615d59] leading-relaxed">Review queue surfaces lessons needing attention. One-click approve or reject.</p>
             </div>
             <div className="rounded-xl bg-white border border-black/10 p-6" style={{boxShadow: "rgba(0,0,0,0.04) 0px 4px 18px"}}>
               <div className="text-[40px] font-bold text-black/20 leading-none mb-4 font-mono">03</div>
               <h3 className="text-[18px] font-bold text-black/90 mb-2">Student subscribes</h3>
-              <p className="text-[14px] text-[#615d59] leading-relaxed">Browse the marketplace, read AI summaries, subscribe in one click.</p>
+              <p className="text-[14px] text-[#615d59] leading-relaxed">Browse with AI summaries. Subscribe in one click.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Comparison section — unconventional: vs. status quo */}
+      {/* Comparison — unconventional section */}
       <section className="px-8 py-16 border-b border-black/8">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-[32px] font-bold tracking-[-1.0px] text-black/95 mb-8">Why LearnAI beats browsing YouTube tutorials</h2>
+          <h2 style={{fontFamily: 'var(--font-display), Georgia, serif'}} className="text-[32px] leading-snug text-black/95 mb-8">Why LearnAI beats browsing YouTube tutorials</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="rounded-xl border border-black/10 p-6 bg-white">
               <div className="text-[13px] font-semibold text-[#a39e98] uppercase tracking-wider mb-4">YouTube / random tutorials</div>
               <ul className="space-y-3">
-                {["No quality filter — anyone can post anything", "15-minute intros before any content", "Can&apos;t preview what you&apos;ll learn", "Teacher credibility unknown"].map((item, i) => (
+                {["No quality filter — anyone can post anything", "15-minute intros before any real content", "Can't preview what you'll actually learn", "Teacher credibility unknown"].map((item, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-[14px] text-[#615d59]">
-                    <span className="mt-0.5 h-4 w-4 rounded-full border border-black/20 flex-shrink-0 flex items-center justify-center">
-                      <span className="h-1.5 w-1.5 rounded-full bg-black/20"></span>
-                    </span>
-                    <span dangerouslySetInnerHTML={{__html: item}} />
+                    <span className="mt-1 h-3 w-3 rounded-full border border-black/20 flex-shrink-0"></span>
+                    {item}
                   </li>
                 ))}
               </ul>
@@ -139,10 +139,10 @@ export default function Home() {
             <div className="rounded-xl border border-[#0075de]/20 p-6 bg-[#f2f9ff]">
               <div className="text-[13px] font-semibold text-[#0075de] uppercase tracking-wider mb-4">LearnAI marketplace</div>
               <ul className="space-y-3">
-                {["Admin-reviewed before going live", "AI summary tells you exactly what you&apos;ll learn", "Read the full summary before subscribing", "Verified teacher profiles"].map((item, i) => (
+                {["Admin-reviewed before going live", "AI summary tells you exactly what you'll learn", "Read the full summary before subscribing", "Verified teacher profiles with track record"].map((item, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-[14px] text-black/70">
                     <CheckCircle className="mt-0.5 h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span dangerouslySetInnerHTML={{__html: item}} />
+                    {item}
                   </li>
                 ))}
               </ul>
@@ -151,7 +151,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Subjects strip */}
+      {/* Subjects */}
       <section className="px-8 py-12">
         <div className="max-w-6xl mx-auto">
           <p className="text-[13px] font-semibold text-[#a39e98] uppercase tracking-widest mb-5">Popular subjects</p>
