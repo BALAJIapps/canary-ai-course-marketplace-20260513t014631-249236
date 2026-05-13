@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { canaryLesson } from "@/db/schema";
-import { getSession } from "@/lib/session";
+import { auth } from "@/lib/auth";
 import { openai, DEFAULT_MODEL } from "@/lib/ai";
 import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user) {
       return NextResponse.json(
         { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } },
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate AI summary using Promise.race for proper timeout
+    // Generate AI summary with timeout
     const summaryPromise = openai.chat.completions.create({
       model: DEFAULT_MODEL,
       max_tokens: 512,
@@ -55,8 +55,7 @@ export async function POST(req: NextRequest) {
     );
 
     const response = await Promise.race([summaryPromise, timeoutPromise]);
-    const summary =
-      response.choices[0]?.message?.content ?? "Summary not available.";
+    const summary = response.choices[0]?.message?.content ?? "Summary not available.";
 
     // Persist summary
     const [updated] = await db

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { canarySubscription, canaryLesson } from "@/db/schema";
-import { getSession } from "@/lib/session";
+import { auth } from "@/lib/auth";
 import { eq, and, desc } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getSession();
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user) {
       return NextResponse.json(
         { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } },
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user) {
       return NextResponse.json(
         { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } },
@@ -60,7 +60,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify lesson exists and is approved
     const [lesson] = await db
       .select()
       .from(canaryLesson)
@@ -81,7 +80,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check for existing subscription
     const [existing] = await db
       .select()
       .from(canarySubscription)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { canaryLesson, user } from "@/db/schema";
-import { getSession } from "@/lib/session";
+import { auth } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 
 export async function PATCH(
@@ -9,7 +9,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSession();
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user) {
       return NextResponse.json(
         { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } },
@@ -17,7 +17,7 @@ export async function PATCH(
       );
     }
 
-    // Check admin role
+    // Check admin role from DB
     const [dbUser] = await db
       .select()
       .from(user)

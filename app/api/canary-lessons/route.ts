@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { canaryLesson, user } from "@/db/schema";
-import { getSession } from "@/lib/session";
+import { auth } from "@/lib/auth";
 import { desc, eq, ilike, or, and } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
@@ -10,7 +10,6 @@ export async function GET(req: NextRequest) {
     const q = searchParams.get("q") ?? "";
     const status = searchParams.get("status") ?? "approved";
 
-    // Always enforce status filter — never expose wrong-status lessons
     const statusFilter = eq(canaryLesson.status, status);
 
     const lessons = await db
@@ -55,7 +54,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user) {
       return NextResponse.json(
         { ok: false, error: { code: "UNAUTHORIZED", message: "Sign in required" } },
