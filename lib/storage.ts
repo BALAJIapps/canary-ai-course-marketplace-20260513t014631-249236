@@ -1,20 +1,6 @@
 /**
  * File upload & storage via multiple providers.
- *
- * Supports three backends (user picks via env var):
- *   1. Uploadthing — easiest, free tier 2GB
- *   2. Cloudflare R2 — cheapest at scale, S3-compatible
- *   3. Vercel Blob — simplest if deploying to Vercel
- *
- * The generated app gets a /api/upload route and a useUpload() hook
- * that work with any backend. The coder agent picks the backend based
- * on the user's prompt or defaults to Uploadthing.
- *
- * Usage in generated apps:
- *   import { uploadFile, getFileUrl, deleteFile } from "@/lib/storage";
  */
-
-// ── Provider detection ────────────────────────────────────────────
 
 type StorageProvider = "uploadthing" | "r2" | "vercel-blob" | "local";
 
@@ -25,13 +11,19 @@ function detectProvider(): StorageProvider {
   return "local";
 }
 
-// ── Unified interface ─────────────────────────────────────────────
-
 export interface UploadResult {
   url: string;
   key: string;
   size: number;
   name: string;
+}
+
+/** Convert Buffer to a strict ArrayBuffer that satisfies Node 26 Blob types */
+function bufferToArrayBuffer(buf: Buffer): ArrayBuffer {
+  const ab = new ArrayBuffer(buf.length);
+  const view = new Uint8Array(ab);
+  for (let i = 0; i < buf.length; i++) view[i] = buf[i];
+  return ab;
 }
 
 export async function uploadFile(
@@ -40,49 +32,31 @@ export async function uploadFile(
   options?: { folder?: string; contentType?: string },
 ): Promise<UploadResult> {
   const provider = detectProvider();
-
   switch (provider) {
-    case "uploadthing":
-      return uploadToUploadthing(file, filename, options);
-    case "r2":
-      return uploadToR2(file, filename, options);
-    case "vercel-blob":
-      return uploadToVercelBlob(file, filename, options);
-    case "local":
-      return uploadToLocal(file, filename, options);
+    case "uploadthing": return uploadToUploadthing(file, filename, options);
+    case "r2": return uploadToR2(file, filename, options);
+    case "vercel-blob": return uploadToVercelBlob(file, filename, options);
+    case "local": return uploadToLocal(file, filename, options);
   }
 }
 
 export async function getFileUrl(key: string): Promise<string> {
   const provider = detectProvider();
-
   switch (provider) {
-    case "uploadthing":
-      return `https://utfs.io/f/${key}`;
-    case "r2":
-      return `${process.env.R2_PUBLIC_URL || ""}/${key}`;
-    case "vercel-blob":
-      return key; // Vercel Blob URLs are the key
-    case "local":
-      return `/uploads/${key}`;
+    case "uploadthing": return `https://utfs.io/f/${key}`;
+    case "r2": return `${process.env.R2_PUBLIC_URL || ""}/${key}`;
+    case "vercel-blob": return key;
+    case "local": return `/uploads/${key}`;
   }
 }
 
 export async function deleteFile(key: string): Promise<void> {
   const provider = detectProvider();
-
   switch (provider) {
-    case "r2":
-      await deleteFromR2(key);
-      break;
-    case "vercel-blob":
-      await deleteFromVercelBlob(key);
-      break;
-    // uploadthing and local: deletion is more complex, skip for now
+    case "r2": await deleteFromR2(key); break;
+    case "vercel-blob": await deleteFromVercelBlob(key); break;
   }
 }
-
-// ── Uploadthing ───────────────────────────────────────────────────
 
 async function uploadToUploadthing(
   file: File | Buffer,
@@ -93,11 +67,13 @@ async function uploadToUploadthing(
   if (!secret) throw new Error("UPLOADTHING_SECRET not set");
 
   const formData = new FormData();
-  const blob = file instanceof Buffer
-    ? new Blob([new Uint8Array(file.buffer, file.byteOffset, file.byteLength)], {
-        type: options?.contentType || "application/octet-stream",
-      })
-    : file;
+  let blob: Blob;
+  if (file instanceof Buffer) {
+    const ab = bufferToArrayBuffer(file);
+    blob = new Blob([ab], { type: options?.contentType || "application/octet-stream" });
+  } else {
+    blob = file;
+  }
   formData.append("file", blob, filename);
 
   const resp = await fetch("https://uploadthing.com/api/uploadFiles", {
@@ -118,8 +94,6 @@ async function uploadToUploadthing(
   };
 }
 
-// ── Cloudflare R2 (S3-compatible) ─────────────────────────────────
-
 async function uploadToR2(
   file: File | Buffer,
   filename: string,
@@ -131,7 +105,7 @@ async function uploadToR2(
   const endpoint = process.env.R2_ENDPOINT;
 
   if (!accessKeyId || !secretAccessKey || !bucket || !endpoint) {
-    throw new Error("R2 env vars not set (R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_ENDPOINT)");
+    throw new Error("R2 env vars not set");
   }
 
   const key = options?.folder ? `${options.folder}/${filename}` : filename;
@@ -140,9 +114,7 @@ async function uploadToR2(
   const url = `${endpoint}/${bucket}/${key}`;
   const resp = await fetch(url, {
     method: "PUT",
-    headers: {
-      "content-type": options?.contentType || "application/octet-stream",
-    },
+    headers: { "content-type": options?.contentType || "application/octet-stream" },
     body,
   });
 
@@ -161,8 +133,6 @@ async function deleteFromR2(key: string): Promise<void> {
   const bucket = process.env.R2_BUCKET_NAME;
   await fetch(`${endpoint}/${bucket}/${key}`, { method: "DELETE" });
 }
-
-// ── Vercel Blob ───────────────────────────────────────────────────
 
 async function uploadToVercelBlob(
   file: File | Buffer,
@@ -203,8 +173,6 @@ async function deleteFromVercelBlob(key: string): Promise<void> {
     headers: { authorization: `Bearer ${token}` },
   });
 }
-
-// ── Local filesystem (dev fallback) ───────────────────────────────
 
 async function uploadToLocal(
   file: File | Buffer,
