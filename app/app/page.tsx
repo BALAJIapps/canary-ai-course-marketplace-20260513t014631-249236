@@ -29,6 +29,7 @@ interface Lesson {
 interface Subscription {
   id: string;
   status: string;
+  lessonId: string | null;
   lessonTitle: string | null;
   lessonSubject: string | null;
   lessonPrice: string | null;
@@ -72,7 +73,6 @@ export default function DashboardPage() {
   const [approvalLoading, setApprovalLoading] = useState<string | null>(null);
   const [subscribedIds, setSubscribedIds] = useState<Set<string>>(new Set());
 
-  // Create lesson form
   const [form, setForm] = useState({ title: '', description: '', content: '', subject: '', price: '0' });
   const [creating, setCreating] = useState(false);
 
@@ -102,10 +102,10 @@ export default function DashboardPage() {
       const data = await apiFetch('/api/canary-subscriptions');
       const subs: Subscription[] = data.data ?? [];
       setMySubscriptions(subs);
-      setSubscribedIds(new Set(subs.map((s) => s.lessonId ?? '').filter(Boolean)));
+      setSubscribedIds(new Set(subs.map((s) => s.lessonId).filter((id): id is string => id !== null)));
     } catch (err: unknown) {
       // 401 is expected for unauthenticated users — silently ignore
-      if (!(err instanceof Error && err.message.includes('401'))) {
+      if (!(err instanceof Error && err.message.startsWith('HTTP 401'))) {
         toast.error(err instanceof Error ? err.message : 'Failed to load subscriptions');
       }
     } finally {
@@ -193,7 +193,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#f6f5f4]">
-      {/* Dashboard nav */}
       <header className="bg-white border-b border-black/10 px-8 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <GraduationCap className="h-5 w-5 text-[#0075de]" />
@@ -216,7 +215,7 @@ export default function DashboardPage() {
       </header>
 
       <div className="max-w-6xl mx-auto px-8 py-8">
-        {/* Metrics row */}
+        {/* Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="border-black/10 bg-white" style={{boxShadow: 'rgba(0,0,0,0.04) 0px 4px 18px'}}>
             <CardContent className="pt-5">
